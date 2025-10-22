@@ -28,7 +28,6 @@ public class BannerController {
 
     @Autowired
      private BannerService bannerService;
-
     
     /**
      * 上传轮播图图片
@@ -115,7 +114,8 @@ public class BannerController {
     @DeleteMapping("/delete/{id}")  // 处理DELETE请求
     @Operation(summary = "删除轮播图", description = "根据ID删除指定的轮播图")  // API描述
     public Result<String> deleteBanner(@Parameter(description = "轮播图ID") @PathVariable Long id) {
-        return null;
+        bannerService.removeById(id);
+        return Result.success("删除成功");
     }
     
     /**
