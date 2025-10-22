@@ -50,7 +50,12 @@ public class BannerController {
     @GetMapping("/active")  // 处理GET请求
     @Operation(summary = "获取启用的轮播图", description = "获取状态为启用的轮播图列表，供前台首页展示使用")  // API描述
     public Result<List<Banner>> getActiveBanners() {
-        return Result.success(null);
+        // 定义查询条件(处于激活状态的轮播图并且降序排序)
+        LambdaQueryWrapper<Banner> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+        lambdaQueryWrapper.eq(Banner::getIsActive,true);
+        lambdaQueryWrapper.orderByAsc(Banner::getSortOrder);
+        List<Banner> list = bannerService.list(lambdaQueryWrapper);
+        return Result.success(list);
     }
     
     /**
