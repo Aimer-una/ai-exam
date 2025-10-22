@@ -4,8 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f0954fe7-48fc-4ca4-8cd4-9cccad0193bc" name="Changes" comment="切换轮播图状态">
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/atguigu/exam/controller/BannerController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/atguigu/exam/controller/BannerController.java" afterDir="false" />
+    <list default="true" id="f0954fe7-48fc-4ca4-8cd4-9cccad0193bc" name="Changes" comment="根据ID获取轮播图">
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/atguigu/exam/config/MinioConfiguration.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/atguigu/exam/config/properties/MinioProperties.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/application.yml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -111,7 +115,7 @@
       <workItem from="1753239230618" duration="11150000" />
       <workItem from="1753256277536" duration="2690000" />
       <workItem from="1753258977135" duration="343000" />
-      <workItem from="1761105628485" duration="6011000" />
+      <workItem from="1761105628485" duration="7916000" />
     </task>
     <task id="LOCAL-00001" summary="项目初始化">
       <option name="closed" value="true" />
@@ -145,7 +149,31 @@
       <option name="project" value="LOCAL" />
       <updated>1761121096845</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="切换轮播图状态">
+      <option name="closed" value="true" />
+      <created>1761121690507</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1761121690507</updated>
+    </task>
+    <task id="LOCAL-00006" summary="切换轮播图状态">
+      <option name="closed" value="true" />
+      <created>1761121698522</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1761121698522</updated>
+    </task>
+    <task id="LOCAL-00007" summary="根据ID获取轮播图">
+      <option name="closed" value="true" />
+      <created>1761122127068</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1761122127068</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -156,6 +184,7 @@
     <MESSAGE value="查询轮播图列表以及定义全局时间格式化，与逻辑删除" />
     <MESSAGE value="查询激活的轮播图接口" />
     <MESSAGE value="切换轮播图状态" />
-    <option name="LAST_COMMIT_MESSAGE" value="切换轮播图状态" />
+    <MESSAGE value="根据ID获取轮播图" />
+    <option name="LAST_COMMIT_MESSAGE" value="根据ID获取轮播图" />
   </component>
 </project>

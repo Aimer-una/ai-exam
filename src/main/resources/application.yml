@@ -30,3 +30,9 @@ mybatis-plus:
       logic-delete-field: isDeleted # 全局逻辑删除的实体属性名(配置后可以忽略不配置步骤二)
       logic-delete-value: 1 # 逻辑已删除值(默认为 1)
       logic-not-delete-value: 0 # 逻辑未删除值(默认为 0)
+
+minio:
+  endpoint: http://192.168.100.168:9002
+  access-key: minioadmin
+  secret-key: minioadmin
+  bucket-name: onlinebucket
