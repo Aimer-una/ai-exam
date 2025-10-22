@@ -5,6 +5,7 @@ import com.atguigu.exam.common.Result;
 import com.atguigu.exam.entity.Banner;
 import com.atguigu.exam.service.BannerService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -128,6 +129,10 @@ public class BannerController {
     public Result<String> toggleBannerStatus(
             @Parameter(description = "轮播图ID") @PathVariable Long id, 
             @Parameter(description = "是否启用，true为启用，false为禁用") @RequestParam Boolean isActive) {
-        return null;
+        LambdaUpdateWrapper<Banner> lambdaQueryWrapper = new LambdaUpdateWrapper<>();
+        lambdaQueryWrapper.eq(Banner::getId,id);
+        lambdaQueryWrapper.set(Banner::getIsActive,isActive);
+        bannerService.update(lambdaQueryWrapper);
+        return Result.success("修改成功");
     }
 } 
