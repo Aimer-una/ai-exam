@@ -3,6 +3,8 @@ package com.atguigu.exam.controller;
 
 import com.atguigu.exam.common.Result;
 import com.atguigu.exam.entity.Banner;
+import com.atguigu.exam.service.BannerService;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -22,6 +24,9 @@ import java.util.Map;
 @CrossOrigin  // 允许跨域访问
 @Tag(name = "轮播图管理", description = "轮播图相关操作，包括图片上传、轮播图增删改查、状态管理等功能")  // Swagger API分组
 public class BannerController {
+
+    @Autowired
+     private BannerService bannerService;
 
     
     /**
@@ -55,7 +60,11 @@ public class BannerController {
     @GetMapping("/list")  // 处理GET请求
     @Operation(summary = "获取所有轮播图", description = "获取所有轮播图列表，包括启用和禁用的，供管理后台使用")  // API描述
     public Result<List<Banner>> getAllBanners() {
-        return Result.success(null);
+        // 设置查询排序条件从低到高排序
+        LambdaQueryWrapper<Banner> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+        lambdaQueryWrapper.orderByAsc(Banner::getSortOrder);
+        List<Banner> result = bannerService.list(lambdaQueryWrapper);
+        return Result.success(result);
     }
     
     /**

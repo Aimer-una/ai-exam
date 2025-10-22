@@ -15,8 +15,17 @@ spring:
       maximum-pool-size: 12 #连接池最大连接数，默认是10
       minimum-idle: 10 #最小空闲连接数量
       pool-name: SPHHikariPool # 连接池名称
+      # 全局时间格式化
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
 
 #用于打印框架生成的sql语句，便于调试
 mybatis-plus:
   configuration:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    # 逻辑删除功能只对Mybatis-Plus自动注入的sql起效，也就是说，对于手动在`Mapper: xml`文件配置的sql不会生效，需要单独考虑。:
+  global-config:
+    db-config:
+      logic-delete-field: isDeleted # 全局逻辑删除的实体属性名(配置后可以忽略不配置步骤二)
+      logic-delete-value: 1 # 逻辑已删除值(默认为 1)
+      logic-not-delete-value: 0 # 逻辑未删除值(默认为 0)
