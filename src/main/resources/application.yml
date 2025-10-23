@@ -1,7 +1,12 @@
 server:
   port: 8080
 
+# springboot默认上传文件大小最高为1MB，通过这个配置文件可以自定义设计上传文件最高的大小
 spring:
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 10MB
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
     url: jdbc:mysql:///exam_system_new?useUnicode=true&characterEncoding=utf-8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=GMT%2b8
@@ -32,7 +37,7 @@ mybatis-plus:
       logic-not-delete-value: 0 # 逻辑未删除值(默认为 0)
 
 minio:
-  endpoint: http://192.168.100.168:9002
+  endpoint: http://192.168.100.168:9000
   access-key: minioadmin
   secret-key: minioadmin
   bucket-name: onlinebucket
