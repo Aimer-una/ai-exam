@@ -4,11 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f0954fe7-48fc-4ca4-8cd4-9cccad0193bc" name="Changes" comment="minio的初始化配置">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/atguigu/exam/service/FileUploadService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/atguigu/exam/service/FileUploadService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/atguigu/exam/service/impl/FileUploadServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/atguigu/exam/service/impl/FileUploadServiceImpl.java" afterDir="false" />
-    </list>
+    <list default="true" id="f0954fe7-48fc-4ca4-8cd4-9cccad0193bc" name="Changes" comment="通过minio上传文件接口以及一系列配置" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -114,7 +110,7 @@
       <workItem from="1753256277536" duration="2690000" />
       <workItem from="1753258977135" duration="343000" />
       <workItem from="1761105628485" duration="8636000" />
-      <workItem from="1761208207827" duration="1482000" />
+      <workItem from="1761208207827" duration="1787000" />
     </task>
     <task id="LOCAL-00001" summary="项目初始化">
       <option name="closed" value="true" />
@@ -188,7 +184,15 @@
       <option name="project" value="LOCAL" />
       <updated>1761124202812</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="通过minio上传文件接口以及一系列配置">
+      <option name="closed" value="true" />
+      <created>1761209950275</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1761209950275</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -201,6 +205,7 @@
     <MESSAGE value="切换轮播图状态" />
     <MESSAGE value="根据ID获取轮播图" />
     <MESSAGE value="minio的初始化配置" />
-    <option name="LAST_COMMIT_MESSAGE" value="minio的初始化配置" />
+    <MESSAGE value="通过minio上传文件接口以及一系列配置" />
+    <option name="LAST_COMMIT_MESSAGE" value="通过minio上传文件接口以及一系列配置" />
   </component>
 </project>
