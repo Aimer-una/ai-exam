@@ -16,6 +16,7 @@ import java.util.List;
  * 包括分类的增删改查、树形结构展示等功能
  */
 @RestController  // REST控制器，返回JSON数据
+@CrossOrigin("*")
 @RequestMapping("/api/categories")  // 分类API路径前缀
 @Tag(name = "分类管理", description = "题目分类相关操作，包括分类的增删改查、树形结构管理等功能")  // Swagger API分组
 public class CategoryController {
@@ -42,7 +43,8 @@ public class CategoryController {
     @GetMapping("/tree")  // 处理GET请求
     @Operation(summary = "获取分类树形结构", description = "获取题目分类的树形层级结构，用于前端树形组件展示")  // API描述
     public Result<List<Category>> getCategoryTree() {
-        return Result.success(null);
+        List<Category> list = categoryService.getCategoryTree();
+        return Result.success(list);
     }
 
     /**

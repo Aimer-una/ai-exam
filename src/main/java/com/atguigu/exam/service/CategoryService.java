@@ -9,4 +9,6 @@ public interface CategoryService extends IService<Category> {
 
 
     List<Category> getAllCategories();
+
+    List<Category> getCategoryTree();
 }

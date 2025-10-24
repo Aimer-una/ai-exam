@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.LongSummaryStatistics;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -42,5 +43,28 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper,Category> im
             category.setCount(questionCountMap.getOrDefault(category.getId(),0L));
         }
         return list;
+    }
+
+    @Override
+    public List<Category> getCategoryTree() {
+        List<Category> categoryList = getAllCategories();
+        // 1. 使用Stream API按parentId进行分组，得到 Map<parentId, List<children>>
+        Map<Long, List<Category>> childrenMap = categoryList.stream().collect(Collectors.groupingBy(Category::getParentId));
+
+        // 筛选一级分类信息
+        List<Category> parentCategory = categoryList.stream().filter(c -> c.getParentId() == 0).collect(Collectors.toList());
+        // 2. 遍历所有分类，为它们设置children属性，并递归地累加题目数量
+        for (Category category : parentCategory) {
+
+            // 从Map中找到当前分类的所有子分类
+            List<Category> childrenCategory = childrenMap.getOrDefault(category.getId(), new ArrayList<>());
+            category.setChildren(childrenCategory);
+
+            // 汇总子分类的题目数量到父分类
+            Long sonCount = childrenCategory.stream().collect(Collectors.summingLong(Category::getCount));
+            category.setCount(category.getCount() + sonCount);
+
+        }
+        return parentCategory;
     }
 }
