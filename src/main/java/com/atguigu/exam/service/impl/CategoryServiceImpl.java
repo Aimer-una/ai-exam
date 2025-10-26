@@ -2,6 +2,7 @@ package com.atguigu.exam.service.impl;
 
 
 import com.atguigu.exam.entity.Category;
+import com.atguigu.exam.entity.Question;
 import com.atguigu.exam.mapper.CategoryMapper;
 import com.atguigu.exam.mapper.QuestionMapper;
 import com.atguigu.exam.service.CategoryService;
@@ -11,6 +12,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -79,6 +81,23 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper,Category> im
     public void updateCategory(Category category) {
         checkRepeat(category);
         updateById(category);
+    }
+
+    @Override
+    public void deleteCategory(Long id) {
+        Category category = getById(id);
+        // 判断该分类是否是父分类如果是则不能删除
+        if (category.getParentId() == 0){
+            throw new RuntimeException("不能删除父分类");
+        }
+        // 检查该分类下是否有关联题目
+        LambdaQueryWrapper<Question> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+        lambdaQueryWrapper.eq(Question::getCategoryId,id);
+        Long count = questionMapper.selectCount(lambdaQueryWrapper);
+        if (count > 0){
+            throw new RuntimeException("当前的:%s分类，关联了%s道题目,无法删除！".formatted(category.getName(),count));
+        }
+        removeById(id);
     }
 
     private void checkRepeat(Category category){
