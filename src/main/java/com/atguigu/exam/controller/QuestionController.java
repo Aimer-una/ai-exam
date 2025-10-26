@@ -2,6 +2,8 @@ package com.atguigu.exam.controller;
 
 import com.atguigu.exam.common.Result;
 import com.atguigu.exam.entity.Question;
+import com.atguigu.exam.service.QuestionService;
+import com.atguigu.exam.vo.QuestionQueryVo;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -9,11 +11,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.Comparator;
+
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+
+
 
 /**
  * 题目控制器 - 处理题目相关的HTTP请求
@@ -40,6 +41,9 @@ import java.util.stream.Collectors;
 @CrossOrigin(origins = "*")  // 允许跨域访问，解决前后端分离开发中的跨域问题
 @Tag(name = "题目管理", description = "题目相关的增删改查操作，包括分页查询、随机获取、热门推荐等功能")  // Swagger标签，用于分组显示API
 public class QuestionController {
+
+    @Autowired
+    private QuestionService questionService;
     
     /**
      * 分页查询题目列表（支持多条件筛选）
@@ -57,10 +61,6 @@ public class QuestionController {
      * 
      * @param page 当前页码，从1开始，默认第1页
      * @param size 每页显示数量，默认10条
-     * @param categoryId 分类ID筛选条件，可选
-     * @param difficulty 难度筛选条件（EASY/MEDIUM/HARD），可选
-     * @param type 题型筛选条件（CHOICE/JUDGE/TEXT），可选
-     * @param keyword 关键词搜索，对题目标题进行模糊查询，可选
      * @return 封装的分页查询结果，包含题目列表和分页信息
      */
     @GetMapping("/list")  // 映射GET请求到/api/questions/list
@@ -68,12 +68,11 @@ public class QuestionController {
     public Result<Page<Question>> getQuestionList(
             @Parameter(description = "当前页码，从1开始", example = "1") @RequestParam(defaultValue = "1") Integer page,  // 参数描述
             @Parameter(description = "每页显示数量", example = "10") @RequestParam(defaultValue = "10") Integer size,
-            @Parameter(description = "分类ID筛选条件") @RequestParam(required = false) Long categoryId,
-            @Parameter(description = "难度筛选条件，可选值：EASY/MEDIUM/HARD") @RequestParam(required = false) String difficulty,
-            @Parameter(description = "题型筛选条件，可选值：CHOICE/JUDGE/TEXT") @RequestParam(required = false) String type,
-            @Parameter(description = "关键词搜索，对题目标题进行模糊查询") @RequestParam(required = false) String keyword) {
+            QuestionQueryVo questionQueryVo) {
         // 返回统一格式的成功响应
-        return Result.success(null);
+        Page<Question> questionPage = new Page<>(page, size);
+        questionService.selectQuestionPage(questionPage,questionQueryVo);
+        return Result.success(questionPage);
     }
     
     /**

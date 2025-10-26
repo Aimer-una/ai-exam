@@ -30,6 +30,7 @@ mybatis-plus:
   configuration:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
     # 逻辑删除功能只对Mybatis-Plus自动注入的sql起效，也就是说，对于手动在`Mapper: xml`文件配置的sql不会生效，需要单独考虑。:
+    auto-mapping-behavior: full #开启嵌套自动映射
   global-config:
     db-config:
       logic-delete-field: isDeleted # 全局逻辑删除的实体属性名(配置后可以忽略不配置步骤二)

@@ -3,4 +3,42 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.atguigu.exam.mapper.QuestionMapper">
+    
+    <resultMap id="questionMap" type="com.atguigu.exam.entity.Question">
+        <id column="id" property="id"></id>
+        <!--如果需要省略result标签自动映射，且有嵌套对象需要开启自动映射为full-->
+        <association property="answer" javaType="com.atguigu.exam.entity.QuestionAnswer">
+            <id column="qas_id" property="id"></id>
+            <result column="qas_create_time" property="createTime"></result>
+            <result column="qas_update_time" property="updateTime"></result>
+            <result column="id" property="questionId"></result>
+        </association>
+        <collection property="choices" ofType="com.atguigu.exam.entity.QuestionChoice" column="id" select="com.atguigu.exam.mapper.QuestionChoiceMapper.selectListByQuestionId"/>
+
+    </resultMap>
+
+    <select id="selectQuestionPage" resultMap="questionMap">
+        select
+        qs.*,
+        qas.id qas_id,
+        qas.answer,
+        qas.keywords,
+        qas.create_time qas_create_time,
+        qas.update_time qas_update_time
+        from questions qs left join question_answers qas on qs.id = qas.question_id
+        where qs.is_deleted = 0 and qas.is_deleted = 0
+        <if test="queryVo.type != null and queryVo.type != ''">
+            and qs.type = #{queryVo.type}
+        </if>
+        <if test="queryVo.difficulty != null and queryVo.difficulty != ''">
+            and qs.difficulty = #{queryVo.difficulty}
+        </if>
+        <if test="queryVo.categoryId != null">
+            and qs.category_id = #{queryVo.categoryId}
+        </if>
+        <if test="queryVo.keyword != null and queryVo.keyword != ''">
+            and title like concat('%',#{queryVo.keyword},'%')
+        </if>
+        order by qs.create_time desc
+    </select>
 </mapper>
