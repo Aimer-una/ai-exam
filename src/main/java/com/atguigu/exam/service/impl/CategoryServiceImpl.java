@@ -67,4 +67,19 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper,Category> im
         }
         return parentCategory;
     }
+
+    @Override
+    public void addCategory(Category category) {
+        // 查找要上传的子分类是否在当前父分类下已经存在
+        LambdaQueryWrapper<Category> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+        lambdaQueryWrapper.eq(Category::getParentId,category.getParentId());
+        lambdaQueryWrapper.eq(Category::getName,category.getName());
+        long count = count(lambdaQueryWrapper);
+        if (count > 0){
+            Category parentCategory = getById(category.getParentId());
+            //不能添加，同一个父类下名称重复了
+            throw new RuntimeException("在%s父分类下，已经存在名为：%s的子分类，本次添加失败！".formatted(parentCategory.getName(),category.getName()));
+        }
+        save(category);
+    }
 }
