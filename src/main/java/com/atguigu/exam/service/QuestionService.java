@@ -42,4 +42,6 @@ public interface QuestionService extends IService<Question> {
     void addQuestion(Question question);
 
     void updateQuestion(Question question);
+
+    void removeQuestion(Long id);
 }

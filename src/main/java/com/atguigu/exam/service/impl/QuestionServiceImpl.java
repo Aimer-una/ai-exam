@@ -1,6 +1,7 @@
 package com.atguigu.exam.service.impl;
 
 import com.atguigu.exam.common.CacheConstants;
+import com.atguigu.exam.entity.PaperQuestion;
 import com.atguigu.exam.entity.Question;
 import com.atguigu.exam.entity.QuestionAnswer;
 import com.atguigu.exam.entity.QuestionChoice;
@@ -220,6 +221,24 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
 
         }
 
+    }
+
+    @Override
+    @Transactional
+    public void removeQuestion(Long id) {
+        // 检查该题目是否存在与试卷表中
+        LambdaQueryWrapper<PaperQuestion> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+        lambdaQueryWrapper.eq(PaperQuestion::getQuestionId,id);
+        Long count = paperQuestionMapper.selectCount(lambdaQueryWrapper);
+        if (count > 0){
+            throw new RuntimeException("该题目：%s 被试卷表中引用%s次，删除失败！".formatted(id,count));
+        }
+
+        // 删除主表
+        removeById(id);
+        // 删除题目答案表和选项表
+        questionChoiceMapper.delete(new LambdaQueryWrapper<QuestionChoice>().eq(QuestionChoice::getQuestionId,id));
+        questionAnswerMapper.delete(new LambdaQueryWrapper<QuestionAnswer>().eq(QuestionAnswer::getQuestionId,id));
     }
 
     // 定义进行题目访问次数增长的方法
