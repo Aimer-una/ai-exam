@@ -22,10 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -69,6 +66,10 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
             return;
         }
 
+        fullQuestionChoiceAndAnswer(questionList);
+    }
+
+    private void fullQuestionChoiceAndAnswer(List<Question> questionList) {
         // 获取所有题目id
         List<Long> questionIds = questionList.stream().map(Question::getId).collect(Collectors.toList());
 
@@ -239,6 +240,42 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         // 删除题目答案表和选项表
         questionChoiceMapper.delete(new LambdaQueryWrapper<QuestionChoice>().eq(QuestionChoice::getQuestionId,id));
         questionAnswerMapper.delete(new LambdaQueryWrapper<QuestionAnswer>().eq(QuestionAnswer::getQuestionId,id));
+    }
+
+    @Override
+    public List<Question> getPopularQuestions(Integer size) {
+        List<Question> popularQuestions = new ArrayList<>();
+        // 在redis中获取热门题目
+        Set<Object> popularQuestionIds = redisUtils.zReverseRange(CacheConstants.POPULAR_QUESTIONS_KEY, 0, size - 1);
+        
+        // 转换成Long类型
+        List<Long> popularQuestionList = popularQuestionIds.stream().map(id -> Long.valueOf(id.toString())).collect(Collectors.toList());
+        for (Long id : popularQuestionList) {
+            // 判断数据库中该热门题目是否被删除
+            Question question = getById(id);
+            if (question != null){
+                popularQuestions.add(question);
+            }
+        }
+
+        // 判断热门题目是否装满
+        int diff = size - popularQuestions.size();
+        if (diff > 0){
+            // 从数据库中获取最新创建的题目将其填满
+            LambdaQueryWrapper<Question> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+            lambdaQueryWrapper.orderByDesc(Question::getCreateTime);
+            // 对已有id进行过滤
+            List<Long> existQuestionIds = popularQuestions.stream().map(Question::getId).collect(Collectors.toList());
+            lambdaQueryWrapper.notIn(!ObjectUtils.isEmpty(existQuestionIds),Question::getId,existQuestionIds);
+            // 切割diff条(只要diff条)
+            lambdaQueryWrapper.last("limit " + diff);
+            List<Question> newQuestions = list(lambdaQueryWrapper);
+            popularQuestions.addAll(newQuestions);
+        }
+
+        // 给题目进行选项和答案赋值
+        fullQuestionChoiceAndAnswer(popularQuestions);
+        return popularQuestions;
     }
 
     // 定义进行题目访问次数增长的方法
