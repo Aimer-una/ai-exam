@@ -14,4 +14,6 @@ import java.util.List;
 public interface QuestionChoiceMapper extends BaseMapper<QuestionChoice> {
     @Select("select * from question_choices where is_deleted = 0 and question_id = #{questionId} order by sort asc")
     List<QuestionChoice> selectListByQuestionId(Long questionId);
-} 
+
+    void insertBatch(List<QuestionChoice> choices);
+}

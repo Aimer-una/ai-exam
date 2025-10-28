@@ -1,5 +1,6 @@
 package com.atguigu.exam.service.impl;
 
+import com.atguigu.exam.common.CacheConstants;
 import com.atguigu.exam.entity.Question;
 import com.atguigu.exam.entity.QuestionAnswer;
 import com.atguigu.exam.entity.QuestionChoice;
@@ -8,6 +9,7 @@ import com.atguigu.exam.mapper.QuestionAnswerMapper;
 import com.atguigu.exam.mapper.QuestionChoiceMapper;
 import com.atguigu.exam.mapper.QuestionMapper;
 import com.atguigu.exam.service.QuestionService;
+import com.atguigu.exam.utils.RedisUtils;
 import com.atguigu.exam.vo.QuestionQueryVo;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
@@ -17,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -40,6 +43,8 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
     private QuestionAnswerMapper questionAnswerMapper;
     @Autowired
     private QuestionChoiceMapper questionChoiceMapper;
+    @Autowired
+    private RedisUtils redisUtils;
     @Override
     public void selectQuestionPage(Page<Question> questionPage, QuestionQueryVo questionQueryVo) {
         questionMapper.selectQuestionPage(questionPage,questionQueryVo);
@@ -112,6 +117,64 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         // 根据id获取正确答案
         QuestionAnswer questionAnswer = questionAnswerMapper.getQuestionAnswer(id);
         question.setAnswer(questionAnswer);
+
+        // 进行热点题目缓存
+        new Thread(()->{
+            incrementQuestion(id);
+        }).start();
         return question;
+    }
+
+    @Override
+    @Transactional
+    public void addQuestion(Question question) {
+        // 同一个类型不能题目title相同
+        LambdaQueryWrapper<Question> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+        lambdaQueryWrapper.eq(Question::getType,question.getType());
+        lambdaQueryWrapper.eq(Question::getTitle,question.getTitle());
+        Question questionExist = getOne(lambdaQueryWrapper);
+        if (questionExist != null){
+            //同一类型，title相同
+            throw new RuntimeException("在%s下，存在%s 名称的题目已经存在！保存失败！".formatted(question.getType(),question.getTitle()));
+        }
+
+        // 新增题目插入到题目表并获取id
+        save(question);
+        Long questionId = question.getId();
+
+        StringBuilder sb = new StringBuilder();
+        QuestionAnswer questionAnswer = new QuestionAnswer();
+        questionAnswer.setQuestionId(questionId);
+        // 判断题目是否是选择题
+        if ("CHOICE".equals(question.getType())){
+            // 将题目的选项添加到选项表中
+            List<QuestionChoice> choices = question.getChoices();
+            for (int i = 0; i < choices.size(); i++) {
+                QuestionChoice choice = choices.get(i);
+                choice.setSort(i);
+                choice.setQuestionId(questionId);
+                // true 本次是正确答案
+                if (choice.getIsCorrect()){
+                   if (sb.length() > 0){
+                       sb.append(",");
+                   }
+                   sb.append((char)('A'+i));
+                }
+            }
+            // 设置题目的正确答案
+            questionAnswer.setAnswer(sb.toString());
+            questionChoiceMapper.insertBatch(choices);
+
+            // 插入答案表
+            questionAnswerMapper.insert(questionAnswer);
+        }
+
+    }
+
+    // 定义进行题目访问次数增长的方法
+    // 异步方法
+    private void incrementQuestion(Long questionId){
+        Double score = redisUtils.zIncrementScore(CacheConstants.POPULAR_QUESTIONS_KEY, questionId, 1);
+        log.info("完成{}题目分数累计，累计后分数为：{}",questionId,score);
     }
 }
