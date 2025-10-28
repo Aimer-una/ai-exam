@@ -94,4 +94,24 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
             }
         }
     }
+
+    @Override
+    public Question getByQuestion(Long id) {
+        // 根据id获取题目
+        Question question = getById(id);
+        // 判断题目是否存在
+        if (ObjectUtils.isEmpty(question)){
+            throw new RuntimeException("题目不存在");
+        }
+        // 判断该题目是否是选择题
+        if ("CHOICE".equals(question.getType())){
+            // 根据id获取题目的选项
+            List<QuestionChoice> questionChoices = questionChoiceMapper.selectListByQuestionId(id);
+            question.setChoices(questionChoices);
+        }
+        // 根据id获取正确答案
+        QuestionAnswer questionAnswer = questionAnswerMapper.getQuestionAnswer(id);
+        question.setAnswer(questionAnswer);
+        return question;
+    }
 }
