@@ -24,7 +24,9 @@ spring:
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: GMT+8
-
+# 默认情况下Knife4j为该接口生成的接口文档如下图所示，其中的queryVo参数错误会被误识别成json格式！
+springdoc:
+  default-flat-param-object: true
 #用于打印框架生成的sql语句，便于调试
 mybatis-plus:
   configuration:

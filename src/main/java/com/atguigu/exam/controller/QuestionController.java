@@ -68,6 +68,7 @@ public class QuestionController {
     public Result<Page<Question>> getQuestionList(
             @Parameter(description = "当前页码，从1开始", example = "1") @RequestParam(defaultValue = "1") Integer page,  // 参数描述
             @Parameter(description = "每页显示数量", example = "10") @RequestParam(defaultValue = "10") Integer size,
+            // 默认情况下Knife4j为该接口生成的接口文档如下图所示，其中的queryVo参数错误会被误识别成json格式！
             QuestionQueryVo questionQueryVo) {
         // 返回统一格式的成功响应
         Page<Question> questionPage = new Page<>(page, size);
