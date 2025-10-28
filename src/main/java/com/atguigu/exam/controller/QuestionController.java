@@ -137,7 +137,8 @@ public class QuestionController {
     public Result<Question> updateQuestion(
             @Parameter(description = "题目ID") @PathVariable Long id, 
             @RequestBody Question question) {
-        return Result.success(null);
+        questionService.updateQuestion(question);
+        return Result.success(question);
     }
     
     /**

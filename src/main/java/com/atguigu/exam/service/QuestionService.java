@@ -40,4 +40,6 @@ public interface QuestionService extends IService<Question> {
     Question getByQuestion(Long id);
 
     void addQuestion(Question question);
+
+    void updateQuestion(Question question);
 }

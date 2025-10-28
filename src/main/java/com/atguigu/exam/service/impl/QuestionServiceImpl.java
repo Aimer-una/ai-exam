@@ -171,6 +171,57 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
 
     }
 
+    @Override
+    @Transactional
+    public void updateQuestion(Question question) {
+        // 判断要修改题目的标题是否存在
+        LambdaQueryWrapper<Question> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+        lambdaQueryWrapper.eq(Question::getTitle,question.getTitle());
+        Question questionExist = getOne(lambdaQueryWrapper);
+        if (questionExist != null){
+            throw new RuntimeException("修改：%s题目的新标题：%s和其他的题目重复了！修改失败！".formatted(question.getId(),question.getTitle()));
+        }
+
+        // 修改题目
+        updateById(question);
+
+        // 修改选择题
+        // 判断是否是选择题
+        if ("CHOICE".equals(question.getType())){
+            List<QuestionChoice> choices = question.getChoices();
+            // 删除根据题目id删除下所有的选择题
+            LambdaQueryWrapper<QuestionChoice> questionChoiceLambdaQueryWrapper = new LambdaQueryWrapper<>();
+            questionChoiceLambdaQueryWrapper.eq(QuestionChoice::getQuestionId,question.getId());
+            questionChoiceMapper.delete(questionChoiceLambdaQueryWrapper);
+
+            StringBuilder sb = new StringBuilder();
+            QuestionAnswer answer = question.getAnswer();
+            // 循环新增选项（选项上id == null）
+            // 拼接正确的档案 a,b
+            for (int i = 0; i < choices.size(); i++) {
+                QuestionChoice choice = choices.get(i);
+                choice.setId(null);
+                // 确保，正确顺序！ 否则默认是0 随机了
+                choice.setSort(i);
+                choice.setUpdateTime(null);
+                choice.setCreateTime(null);
+                choice.setQuestionId(question.getId());
+
+                if (choice.getIsCorrect()){
+                    if (sb.length() > 0){
+                        sb.append(",");
+                    }
+                    sb.append((char) 'A'+i);
+                }
+            }
+            answer.setAnswer(sb.toString());
+            questionChoiceMapper.insertBatch(choices);
+            questionAnswerMapper.updateById(answer);
+
+        }
+
+    }
+
     // 定义进行题目访问次数增长的方法
     // 异步方法
     private void incrementQuestion(Long questionId){
