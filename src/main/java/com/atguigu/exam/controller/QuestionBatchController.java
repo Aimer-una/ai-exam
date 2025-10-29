@@ -9,11 +9,13 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -34,8 +36,16 @@ public class QuestionBatchController {
      */
     @GetMapping("/template")  // 处理GET请求
     @Operation(summary = "下载Excel导入模板", description = "下载题目批量导入的Excel模板文件")  // API描述
-    public ResponseEntity<byte[]> downloadTemplate() {
-      return null;
+    public ResponseEntity<byte[]> downloadTemplate() throws IOException {
+        // 1.获取下载模板字节数组
+        byte[] template = ExcelUtil.generateTemplate();
+        // 2.封装ResponseEntity
+        ResponseEntity<byte[]> responseEntity = ResponseEntity.ok()
+                .header("Content-Disposition", "attachment;filename=question_import_template.xlsx")
+                // 响应头：告诉浏览器“这是附件，文件名是xxx” 是下载不是打开
+                .contentType(MediaType.APPLICATION_OCTET_STREAM) // 二进制文件，不确定类型
+                .body(template); // 设置要返回的核心数据（模板字节数组）
+        return responseEntity;
     }
     
     /**
