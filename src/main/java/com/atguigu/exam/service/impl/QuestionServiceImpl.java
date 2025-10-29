@@ -10,7 +10,9 @@ import com.atguigu.exam.mapper.QuestionAnswerMapper;
 import com.atguigu.exam.mapper.QuestionChoiceMapper;
 import com.atguigu.exam.mapper.QuestionMapper;
 import com.atguigu.exam.service.QuestionService;
+import com.atguigu.exam.utils.ExcelUtil;
 import com.atguigu.exam.utils.RedisUtils;
+import com.atguigu.exam.vo.QuestionImportVo;
 import com.atguigu.exam.vo.QuestionQueryVo;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
@@ -21,7 +23,9 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -276,6 +280,20 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         // 给题目进行选项和答案赋值
         fullQuestionChoiceAndAnswer(popularQuestions);
         return popularQuestions;
+    }
+
+    @Override
+    public List<QuestionImportVo> preViewExcel(MultipartFile file) throws IOException {
+        if (file == null || file.isEmpty()){
+            throw new RuntimeException("预览数据为空");
+        }
+        String originalFilename = file.getOriginalFilename();
+        if (!originalFilename.endsWith(".xls") && !originalFilename.endsWith(".xlsx")){
+            throw new RuntimeException("预览数据的文件格式错误，必须是 .xls或者.xlsx！");
+        }
+        // 解析数据
+        List<QuestionImportVo> questionImportVoList = ExcelUtil.parseExcel(file);
+        return questionImportVoList;
     }
 
     // 定义进行题目访问次数增长的方法
