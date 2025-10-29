@@ -20,6 +20,8 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -294,6 +296,51 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         // 解析数据
         List<QuestionImportVo> questionImportVoList = ExcelUtil.parseExcel(file);
         return questionImportVoList;
+    }
+
+    @Override
+    public void importFromExcel(MultipartFile file) {
+
+    }
+
+    @Override
+    @Transactional
+    public String importQuestions(List<QuestionImportVo> questions) {
+        if (ObjectUtils.isEmpty(questions)){
+            throw new RuntimeException("导入的题目集合为空！");
+        }
+        for (QuestionImportVo question : questions) {
+            try {
+                Question questionDB = new Question();
+                BeanUtils.copyProperties(question,questionDB);
+                // 判断题目是否是选择题
+                if ("CHOICE".equals(question.getType())){
+                    List<QuestionChoice> questionChoiceList = new ArrayList<>();
+                    for (QuestionImportVo.ChoiceImportDto choice : question.getChoices()) {
+                        QuestionChoice questionChoice = new QuestionChoice();
+                        questionChoice.setContent(choice.getContent());
+                        questionChoice.setIsCorrect(choice.getIsCorrect());
+                        questionChoice.setSort(choice.getSort());
+                        questionChoiceList.add(questionChoice);
+                    }
+                    questionDB.setChoices(questionChoiceList);
+                }
+                QuestionAnswer questionAnswer = new QuestionAnswer();
+                // 如果是判断题
+                if ("JUDGE".equals(question.getType())){
+                    questionAnswer.setAnswer(question.getAnswer().toUpperCase());
+                }else {
+                    questionAnswer.setAnswer(question.getAnswer());
+                }
+                questionAnswer.setKeywords(question.getKeywords());
+                questionDB.setAnswer(questionAnswer);
+                addQuestion(questionDB);
+            } catch (Exception e) {
+                log.error("保存{}题目的时候失败了",question.getTitle());
+            }
+
+        }
+        return null;
     }
 
     // 定义进行题目访问次数增长的方法

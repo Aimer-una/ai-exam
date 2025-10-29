@@ -51,4 +51,8 @@ public interface QuestionService extends IService<Question> {
     List<Question> getPopularQuestions(Integer size);
 
     List<QuestionImportVo> preViewExcel(MultipartFile file) throws IOException;
+
+    void importFromExcel(MultipartFile file);
+
+    String importQuestions(List<QuestionImportVo> questions);
 }
