@@ -49,3 +49,10 @@ minio:
   access-key: minioadmin
   secret-key: minioadmin
   bucket-name: onlinebucket
+
+kimi:
+  api:
+    model: moonshot-v1-32k
+    url: https://api.moonshot.cn/v1
+    temperature: 0.3
+    api-key: sk-bnnADAKWFxz56I0136kRW6LFnnWwUdRVi8adlA8btYq6jooq
