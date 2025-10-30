@@ -1,6 +1,7 @@
 package com.atguigu.exam.service;
 
 import com.atguigu.exam.entity.Paper;
+import com.atguigu.exam.vo.PaperVo;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 import java.util.List;
@@ -11,4 +12,6 @@ import java.util.List;
 public interface PaperService extends IService<Paper> {
 
     List<Paper> getPaperList(String name, String status);
+
+    Paper createPaper(PaperVo paperVo);
 } 

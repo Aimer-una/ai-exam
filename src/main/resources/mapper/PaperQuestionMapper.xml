@@ -3,4 +3,11 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.atguigu.exam.mapper.PaperQuestionMapper">
+    <insert id="addPaperQuestionList" useGeneratedKeys="true" keyProperty="id">
+        insert into paper_question(id, paper_id, question_id, score)
+        values
+        <foreach collection="paperQuestionList" item="item" separator=",">
+            (#{item.id},#{item.paperId},#{item.questionId},#{item.score})
+        </foreach>
+    </insert>
 </mapper>
