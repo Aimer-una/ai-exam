@@ -10,4 +10,6 @@ import com.atguigu.exam.vo.AiGenerateRequestVo;
 public interface KimiAiService {
     String buildPrompt(AiGenerateRequestVo request);
 
+    String callKimiAi(String prompt) throws InterruptedException;
+
 } 

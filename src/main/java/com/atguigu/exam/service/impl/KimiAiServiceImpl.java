@@ -3,9 +3,12 @@ package com.atguigu.exam.service.impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.atguigu.exam.config.properties.KimiProperties;
 import com.atguigu.exam.service.KimiAiService;
 import com.atguigu.exam.vo.AiGenerateRequestVo;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ObjectUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -14,9 +17,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 /**
  * Kimi AI服务实现类
@@ -25,6 +26,10 @@ import java.util.List;
 @Slf4j
 @Service
 public class KimiAiServiceImpl implements KimiAiService {
+    @Autowired
+    private KimiProperties kimiProperties;
+    @Autowired
+    private WebClient webClient;
     /**
      * 构建发送给AI的提示词
      */
@@ -125,5 +130,116 @@ public class KimiAiServiceImpl implements KimiAiService {
         }
 
         return prompt.toString();
+    }
+
+    // @Override
+    public String callKimiAi1(String prompt) throws InterruptedException {
+        // 设置重试机制
+        int maxTry = 3;
+        for (int i = 0; i <= maxTry; i++) {
+            try{
+                Map<String,Object> requestBody = new HashMap<>();
+                requestBody.put("model",kimiProperties.getModel());
+                requestBody.put("temperature",kimiProperties.getTemperature()); // 提示词
+
+                List<Map<String,Object>> message = new ArrayList<>();
+                Map<String,Object> userMessage = new HashMap<>();
+                userMessage.put("role","user");
+                userMessage.put("content",prompt);
+                message.add(userMessage);
+
+                requestBody.put("messages",message);
+
+                //2. 发起网络请求调用
+                String response = webClient.post()
+                        .bodyValue(requestBody)
+                        .retrieve() //准备了
+                        .bodyToMono(String.class)
+                        .block();
+                JSONObject result = JSONObject.parseObject(response);
+                if (ObjectUtils.isEmpty(result)){
+                    throw new RuntimeException("通过请求返回的数据为空");
+                }
+                if (result.containsKey("error")){
+                    // 请求出现错误
+                    throw new RuntimeException("重试%s次kimi模型".formatted(i));
+                }
+                String content = result.getJSONArray("choices").getJSONObject(0).getJSONObject("message").getString("content");
+                if (ObjectUtils.isEmpty(content)){
+                    throw new RuntimeException("返回结果为空");
+                }
+                return content;
+            }catch (RuntimeException e){
+                //打印信息
+                log.debug("第{}次尝试调用失败了！",i);
+                if(i == maxTry){
+                    throw new RuntimeException("已经重试3次！依然失败！请稍后再试！！");
+                }
+                Thread.sleep(1000);
+            }
+        }
+        throw new RuntimeException("已经重试3次！依然失败！请稍后再试！！");
+    }
+
+    @Override
+    public String callKimiAi(String prompt) throws InterruptedException {
+
+        int maxTry = 3; //最多重试3次
+        for (int i = 1; i <= 3; i++) {
+            try {
+                //请求体的内容 https://platform.moonshot.cn/docs/api/chat#%E8%AF%B7%E6%B1%82%E5%86%85%E5%AE%B9
+                Map<String,String> userMap = new HashMap<>();
+                userMap.put("role","user");
+                userMap.put("content",prompt); //提示词
+                List<Map> messagesList = new ArrayList<>();
+                messagesList.add(userMap);
+
+                Map<String,Object> requestBody = new HashMap<>();
+                requestBody.put("model",kimiProperties.getModel());
+                requestBody.put("messages",messagesList);
+                requestBody.put("temperature", kimiProperties.getTemperature());
+                requestBody.put("max_tokens", kimiProperties.getMaxTokens());
+
+                //2. 发起网络请求调用
+                Mono<String> stringMono = webClient.post()
+                        .bodyValue(requestBody)
+                        .retrieve() //准备了
+                        .bodyToMono(String.class)
+                        .timeout(Duration.ofSeconds(100));
+
+                //webClient异步请求
+                //同步
+                String result = stringMono.block();
+                //jackson工具！ JsonObject JsonArray
+                JSONObject resultJsonObject = JSONObject.parseObject(result);
+
+                //错误结果：https://platform.moonshot.cn/docs/api/chat#错误说明
+                if (resultJsonObject.containsKey("error")){
+                    throw new RuntimeException("访问错误了，错误信息为:" +
+                            resultJsonObject.getJSONObject("error").getString("message") );
+                }
+                //正确结果：https://platform.moonshot.cn/docs/api/chat#%E8%BF%94%E5%9B%9E%E5%86%85%E5%AE%B9
+                //获取返回内容content
+                // ```json  ```
+                String content = resultJsonObject.getJSONArray("choices").getJSONObject(0).
+                        getJSONObject("message").getString("content");
+                log.debug("调用kimi返回的结果为：{}",content);
+
+                if (content == null || content.isEmpty()){
+                    throw new RuntimeException("调用成功！但是没有返回结果！！");
+                }
+                return content;
+            }catch (Exception e){
+                //打印信息
+                log.debug("第{}次尝试调用失败了！",i);
+                Thread.sleep(1000);
+                //                第几次尝试 i 次！
+                if(i == maxTry){
+                    e.printStackTrace();
+                    throw new RuntimeException("已经重试3次！依然失败！请稍后再试！！");
+                }
+            }
+        }
+        throw new RuntimeException("已经重试3次！依然失败！请稍后再试！！");
     }
 } 

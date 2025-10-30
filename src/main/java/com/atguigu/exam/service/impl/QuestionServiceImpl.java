@@ -1,5 +1,7 @@
 package com.atguigu.exam.service.impl;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.atguigu.exam.common.CacheConstants;
 import com.atguigu.exam.entity.PaperQuestion;
 import com.atguigu.exam.entity.Question;
@@ -9,9 +11,11 @@ import com.atguigu.exam.mapper.PaperQuestionMapper;
 import com.atguigu.exam.mapper.QuestionAnswerMapper;
 import com.atguigu.exam.mapper.QuestionChoiceMapper;
 import com.atguigu.exam.mapper.QuestionMapper;
+import com.atguigu.exam.service.KimiAiService;
 import com.atguigu.exam.service.QuestionService;
 import com.atguigu.exam.utils.ExcelUtil;
 import com.atguigu.exam.utils.RedisUtils;
+import com.atguigu.exam.vo.AiGenerateRequestVo;
 import com.atguigu.exam.vo.QuestionImportVo;
 import com.atguigu.exam.vo.QuestionQueryVo;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -49,6 +53,8 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
     private QuestionChoiceMapper questionChoiceMapper;
     @Autowired
     private RedisUtils redisUtils;
+    @Autowired
+    private KimiAiService kimiAiService;
     @Override
     public void selectQuestionPage(Page<Question> questionPage, QuestionQueryVo questionQueryVo) {
         questionMapper.selectQuestionPage(questionPage,questionQueryVo);
@@ -341,6 +347,58 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
 
         }
         return null;
+    }
+
+    @Override
+    public List<QuestionImportVo> aiGenerateQuestions(AiGenerateRequestVo request) throws InterruptedException {
+        // 获取提示词
+        String prompt = kimiAiService.buildPrompt(request);
+        // 获取题目内容
+        String content = kimiAiService.callKimiAi(prompt);
+        //4. 结果内容解析
+        int startIndex = content.indexOf("```json");
+        int endIndex = content.lastIndexOf("```");
+        //保证有数据，且下标正确！
+        if (startIndex != -1 && endIndex != -1 && startIndex < endIndex) {
+            //获取真正结果
+            String realResult = content.substring(startIndex+7,endIndex);
+            System.out.println("realResult = " + realResult);
+            JSONObject jsonObject = JSONObject.parseObject(realResult);
+            JSONArray questions = jsonObject.getJSONArray("questions");
+            List<QuestionImportVo> questionImportVoList = new ArrayList<>();
+            for (int i = 0; i < questions.size(); i++) {
+                //获取对象
+                JSONObject questionJson = questions.getJSONObject(i);
+                QuestionImportVo questionImportVo = new QuestionImportVo();
+                questionImportVo.setTitle(questionJson.getString("title"));
+                questionImportVo.setType(questionJson.getString("type"));
+                questionImportVo.setMulti(questionJson.getBoolean("multi"));
+                questionImportVo.setDifficulty(questionJson.getString("difficulty"));
+                questionImportVo.setScore(questionJson.getInteger("score"));
+                questionImportVo.setAnalysis(questionJson.getString("analysis"));
+                questionImportVo.setCategoryId(request.getCategoryId());
+
+                //选择题处理选项
+                if ("CHOICE".equals(questionImportVo.getType())) {
+                    JSONArray choices = questionJson.getJSONArray("choices");
+                    List<QuestionImportVo.ChoiceImportDto> choiceImportDtoList = new ArrayList<>(choices.size());
+                    for (int i1 = 0; i1 < choices.size(); i1++) {
+                        JSONObject choicesJSONObject = choices.getJSONObject(i1);
+                        QuestionImportVo.ChoiceImportDto choiceImportDto = new QuestionImportVo.ChoiceImportDto();
+                        choiceImportDto.setContent(choicesJSONObject.getString("content"));
+                        choiceImportDto.setIsCorrect(choicesJSONObject.getBoolean("isCorrect"));
+                        choiceImportDto.setSort(choicesJSONObject.getInteger("sort"));
+                        choiceImportDtoList.add(choiceImportDto);
+                    }
+                    questionImportVo.setChoices(choiceImportDtoList);
+                }
+                //答案 [判断题！ TRUE |FALSE  false true  f  t 是 否]
+                questionImportVo.setAnswer(questionJson.getString("answer"));
+                questionImportVoList.add(questionImportVo);
+            }
+            return questionImportVoList;
+        }
+        throw new RuntimeException("ai生成题目json数据结构错误，无法正常解析！数据为：%s".formatted(content));
     }
 
     // 定义进行题目访问次数增长的方法

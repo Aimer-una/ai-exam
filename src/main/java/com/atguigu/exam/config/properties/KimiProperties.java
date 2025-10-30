@@ -10,4 +10,5 @@ public class KimiProperties {
     private String url;
     private String apiKey;
     private Double temperature;
+    private Integer MaxTokens;
 }
