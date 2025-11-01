@@ -14,4 +14,6 @@ import java.util.List;
 public interface ExamRecordService extends IService<ExamRecord> {
 
     ExamRecord startExam(StartExamVo startExamVo);
+
+    ExamRecord getExamRecordById(Integer id);
 } 

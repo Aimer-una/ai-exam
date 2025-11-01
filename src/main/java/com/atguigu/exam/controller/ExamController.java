@@ -71,7 +71,8 @@ public class ExamController {
     @Operation(summary = "查询考试记录详情", description = "获取指定考试记录的详细信息，包括答题情况和得分")  // API描述
     public Result<ExamRecord> getExamRecordById(
             @Parameter(description = "考试记录ID") @PathVariable Integer id) {
-        return Result.success(null);
+        ExamRecord examRecord = examRecordService.getExamRecordById(id);
+        return Result.success(examRecord);
     }
 
     /**
