@@ -196,4 +196,37 @@ public class PaperServiceImpl extends ServiceImpl<PaperMapper, Paper> implements
         // 删除试卷题目关系表
         paperQuestionMapper.delete(new LambdaQueryWrapper<PaperQuestion>().eq(PaperQuestion::getPaperId,id));
     }
+
+    @Override
+    public Paper getPaperById(Integer id) {
+        Paper paper = getById(id);
+        if (paper == null){
+            throw new RuntimeException("你查询的试卷已经被删除");
+        }
+        // 查询对应的题目信息
+        List<Question> questionList = questionMapper.customQueryQuestionListByPaperId(id);
+        if (ObjectUtils.isEmpty(questionList)){
+            paper.setQuestions(new ArrayList<Question>());
+            log.warn("试卷中没有题目！可以进行试卷编辑！但是不能用于考试！！,对应试卷id：{}",id);
+            return paper;
+        }
+
+        // 对题目分类进行排序（选择 判断 简答）
+        questionList.sort(((o1, o2) -> Integer.compare(typeToInt(o1.getType()),typeToInt(o2.getType()))));
+        paper.setQuestions(questionList);
+        return paper;
+    }
+    /**
+     * 获取题目类型的排序顺序
+     * @param type 题目类型
+     * @return 排序序号
+     */
+    private int typeToInt(String type) {
+        switch (type){
+            case "CHOICE": return 1;
+            case "JUDGE" : return 2;
+            case "TEXT" : return 3;
+            default:return 4;
+        }
+    }
 }
