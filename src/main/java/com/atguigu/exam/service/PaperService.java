@@ -17,4 +17,6 @@ public interface PaperService extends IService<Paper> {
     Paper createPaper(PaperVo paperVo);
 
     void createPaperWithAI(AiPaperVo aiPaperVo);
+
+    void updatePaper(Integer id , PaperVo paperVo);
 } 

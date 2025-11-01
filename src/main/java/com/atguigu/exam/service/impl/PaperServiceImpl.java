@@ -131,4 +131,33 @@ public class PaperServiceImpl extends ServiceImpl<PaperMapper, Paper> implements
         updateById(paper);
 
     }
+
+    @Override
+    @Transactional
+    public void updatePaper(Integer id , PaperVo paperVo) {
+        // 判断要修改的试卷是否为发布状态
+        Paper paper = getById(id);
+        if ("PUBLISHED".equals(paper.getStatus())){
+            throw new RuntimeException("发布状态的试卷不允许修改");
+        }
+        // 判断要更新的试卷名字是否已经存在
+        LambdaQueryWrapper<Paper> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+        lambdaQueryWrapper.eq(Paper::getName,paperVo.getName());
+        long count = count(lambdaQueryWrapper);
+        if (count > 0){
+            throw new RuntimeException("要更新的试卷名字已经存在，请换一个名字");
+        }
+        BeanUtils.copyProperties(paperVo,paper);
+        paper.setQuestionCount(paperVo.getQuestions().size());
+        paper.setTotalScore(paperVo.getQuestions().values().stream().reduce(BigDecimal.ZERO,BigDecimal::add));
+        updateById(paper);
+        // 删除题目试卷管理表中与id管理的所以信息
+        LambdaQueryWrapper<PaperQuestion> paperQuestionLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        paperQuestionLambdaQueryWrapper.eq(PaperQuestion::getPaperId,id);
+        paperQuestionMapper.delete(paperQuestionLambdaQueryWrapper);
+
+        // 添加所有更新的题目加入到题目试卷关联表中
+        List<PaperQuestion> paperQuestionList = paperVo.getQuestions().entrySet().stream().map(entry -> new PaperQuestion(paper.getId().intValue(), Long.valueOf(entry.getKey()), entry.getValue())).collect(Collectors.toList());
+        paperQuestionMapper.addPaperQuestionList(paperQuestionList);
+    }
 }
