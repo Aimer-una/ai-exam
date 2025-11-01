@@ -1,9 +1,11 @@
 package com.atguigu.exam.service.impl;
 
 
+import com.atguigu.exam.entity.ExamRecord;
 import com.atguigu.exam.entity.Paper;
 import com.atguigu.exam.entity.PaperQuestion;
 import com.atguigu.exam.entity.Question;
+import com.atguigu.exam.mapper.ExamRecordMapper;
 import com.atguigu.exam.mapper.PaperMapper;
 import com.atguigu.exam.mapper.PaperQuestionMapper;
 import com.atguigu.exam.mapper.QuestionMapper;
@@ -12,6 +14,7 @@ import com.atguigu.exam.vo.AiPaperVo;
 import com.atguigu.exam.vo.PaperVo;
 import com.atguigu.exam.vo.RuleVo;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
@@ -36,6 +39,8 @@ public class PaperServiceImpl extends ServiceImpl<PaperMapper, Paper> implements
     private PaperQuestionMapper paperQuestionMapper;
     @Autowired
     private QuestionMapper questionMapper;
+    @Autowired
+    private ExamRecordMapper examRecordMapper;
 
     @Override
     public List<Paper> getPaperList(String name, String status) {
@@ -159,5 +164,36 @@ public class PaperServiceImpl extends ServiceImpl<PaperMapper, Paper> implements
         // 添加所有更新的题目加入到题目试卷关联表中
         List<PaperQuestion> paperQuestionList = paperVo.getQuestions().entrySet().stream().map(entry -> new PaperQuestion(paper.getId().intValue(), Long.valueOf(entry.getKey()), entry.getValue())).collect(Collectors.toList());
         paperQuestionMapper.addPaperQuestionList(paperQuestionList);
+    }
+
+    @Override
+    public void updatePaperStatus(Integer id, String status) {
+        LambdaUpdateWrapper<Paper> paperLambdaUpdateWrapper = new LambdaUpdateWrapper<>();
+        paperLambdaUpdateWrapper.eq(Paper::getId,id);
+        paperLambdaUpdateWrapper.set(Paper::getStatus,status);
+        update(paperLambdaUpdateWrapper);
+    }
+
+    @Override
+    @Transactional
+    public void deletePaper(Integer id) {
+        // 发布状态不能删
+        Paper paper = getById(id);
+        if ("PUBLISHED".equals(paper.getStatus())){
+            throw new RuntimeException("发布状态的试卷不能删除");
+        }
+
+        // 有关联考试记录的不能删除
+        LambdaQueryWrapper<ExamRecord> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+        lambdaQueryWrapper.eq(ExamRecord::getExamId,id);
+        Long count = examRecordMapper.selectCount(lambdaQueryWrapper);
+        if (count > 0){
+            throw new RuntimeException("当前试卷：%s 下面有关联 %s条考试记录！无法直接删除！".formatted(id,count));
+        }
+        // 删除试卷
+        removeById(id);
+
+        // 删除试卷题目关系表
+        paperQuestionMapper.delete(new LambdaQueryWrapper<PaperQuestion>().eq(PaperQuestion::getPaperId,id));
     }
 }
