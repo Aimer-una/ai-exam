@@ -74,7 +74,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
 
         List<Question> questionList = questionPage.getRecords();
         // 判断是否查询到数据，如果没有直接返回
-        if (!ObjectUtils.isEmpty(questionList)){
+        if (ObjectUtils.isEmpty(questionList)){
             return;
         }
 
