@@ -3,10 +3,14 @@ package com.atguigu.exam.service.impl;
 
 import com.atguigu.exam.entity.Paper;
 import com.atguigu.exam.entity.PaperQuestion;
+import com.atguigu.exam.entity.Question;
 import com.atguigu.exam.mapper.PaperMapper;
 import com.atguigu.exam.mapper.PaperQuestionMapper;
+import com.atguigu.exam.mapper.QuestionMapper;
 import com.atguigu.exam.service.PaperService;
+import com.atguigu.exam.vo.AiPaperVo;
 import com.atguigu.exam.vo.PaperVo;
+import com.atguigu.exam.vo.RuleVo;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
@@ -17,10 +21,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 
 /**
@@ -32,6 +34,8 @@ public class PaperServiceImpl extends ServiceImpl<PaperMapper, Paper> implements
 
     @Autowired
     private PaperQuestionMapper paperQuestionMapper;
+    @Autowired
+    private QuestionMapper questionMapper;
 
     @Override
     public List<Paper> getPaperList(String name, String status) {
@@ -68,11 +72,63 @@ public class PaperServiceImpl extends ServiceImpl<PaperMapper, Paper> implements
         // 保存试卷题目练习表
         List<PaperQuestion> paperQuestionList = new ArrayList<>();
         Map<Integer, BigDecimal> questions = paperVo.getQuestions();
+        // List<PaperQuestion> collect = paperVo.getQuestions().entrySet().stream().map(s -> new PaperQuestion(paper.getId().intValue(), Long.valueOf(s.getKey()), s.getValue())).collect(Collectors.toList());
         for (Map.Entry<Integer, BigDecimal> entry : questions.entrySet()) {
             PaperQuestion paperQuestion = new PaperQuestion(paper.getId().intValue(),Long.valueOf(entry.getKey()),entry.getValue());
             paperQuestionList.add(paperQuestion);
         }
         paperQuestionMapper.addPaperQuestionList(paperQuestionList);
         return paper;
+    }
+
+    @Override
+    @Transactional
+    public void createPaperWithAI(AiPaperVo aiPaperVo) {
+        if (ObjectUtils.isEmpty(aiPaperVo)) {
+            throw new RuntimeException("不能传入空的组卷信息");
+        }
+        Paper paper = new Paper();
+        BeanUtils.copyProperties(aiPaperVo,paper);
+        save(paper);
+        // 定义题目总数
+        int questionCount = 0;
+        // 定义总分数
+        BigDecimal questionSumCount = BigDecimal.ZERO;
+        for (RuleVo rule : aiPaperVo.getRules()) {
+            //步骤1：校验规则下的题目数量 = 0 跳过
+            if (rule.getCount() == 0){
+                log.warn("在：{}类型下，不需要出题！",rule.getType().name());
+                continue;
+            }
+            LambdaQueryWrapper<Question> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+            lambdaQueryWrapper.eq(Question::getType,rule.getType().name());
+            lambdaQueryWrapper.in(!ObjectUtils.isEmpty(rule.getCategoryIds()),Question::getCategoryId,rule.getCategoryIds());
+            List<Question> questionList = questionMapper.selectList(lambdaQueryWrapper);
+            // 检查获取到的题目集合
+            if (ObjectUtils.isEmpty(questionList)){
+                // 如果为空则跳过本次
+                log.warn("在：{}类型下，我们指定的分类：{},没有查询到题目信息！",rule.getType().name(),rule.getCategoryIds());
+                continue;
+            }
+            //步骤4：判断下是否有规则下count数量！ 没有要全部了
+            int realNumber = Math.min(rule.getCount(), questionList.size());
+
+            //步骤5：本次规则下添加的数量和分数累加
+            questionCount += realNumber;
+            questionSumCount =questionSumCount.add(BigDecimal.valueOf((long) realNumber * rule.getScore()));
+
+            //步骤6：先打乱数据，再截取需要题目数量
+            Collections.shuffle(questionList);
+            List<Question> realQuestionList = questionList.subList(0, realNumber);
+
+            // 转成中间表保存
+            List<PaperQuestion> paperQuestionList = realQuestionList.stream().map(question -> new PaperQuestion(paper.getId().intValue(), question.getId(), BigDecimal.valueOf(rule.getScore()))).collect(Collectors.toList());
+            paperQuestionMapper.addPaperQuestionList(paperQuestionList);
+        }
+        //3. 修改试卷信息（总题数，总分数）
+        paper.setQuestionCount(questionCount);
+        paper.setTotalScore(questionSumCount);
+        updateById(paper);
+
     }
 }

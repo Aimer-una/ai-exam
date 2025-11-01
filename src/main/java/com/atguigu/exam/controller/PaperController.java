@@ -73,7 +73,8 @@ public class PaperController {
     @PostMapping("/ai")  // 处理POST请求
     @Operation(summary = "AI智能组卷", description = "基于设定的规则（题型分布、难度配比等）使用AI自动生成试卷")  // API描述
     public Result<Paper> createPaperWithAI(@RequestBody AiPaperVo aiPaperVo) {
-        return Result.success(null, "AI智能组卷成功");
+        paperService.createPaperWithAI(aiPaperVo);
+        return Result.success("AI智能组卷成功");
     }
 
     /**
