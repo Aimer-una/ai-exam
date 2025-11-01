@@ -3,11 +3,13 @@ package com.atguigu.exam.controller;
 
 import com.atguigu.exam.common.Result;
 import com.atguigu.exam.entity.ExamRecord;
+import com.atguigu.exam.service.ExamRecordService;
 import com.atguigu.exam.vo.StartExamVo;
 import com.atguigu.exam.vo.SubmitAnswerVo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,7 +24,8 @@ import java.util.List;
 @Tag(name = "考试管理", description = "考试流程相关操作，包括开始考试、答题提交、AI批阅、成绩查询等功能")  // Swagger API分组
 public class ExamController {
 
-
+    @Autowired
+    private ExamRecordService examRecordService;
     /**
      * 开始考试 - 创建新的考试记录
      * @param startExamVo 开始考试请求DTO
@@ -32,7 +35,8 @@ public class ExamController {
     @Operation(summary = "开始考试", description = "学生开始考试，创建考试记录并返回试卷内容")  // API描述
     public Result<ExamRecord> startExam(@RequestBody StartExamVo startExamVo) {
         // TODO: 从SecurityContext获取当前登录用户ID  // 暂时使用固定用户ID
-        return Result.success(null, "考试开始成功");
+        ExamRecord examRecord = examRecordService.startExam(startExamVo);
+        return Result.success(examRecord, "考试开始成功");
     }
 
     /**

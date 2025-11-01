@@ -1,6 +1,7 @@
 package com.atguigu.exam.service;
 
 import com.atguigu.exam.entity.ExamRecord;
+import com.atguigu.exam.vo.StartExamVo;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 
@@ -12,4 +13,5 @@ import java.util.List;
  */
 public interface ExamRecordService extends IService<ExamRecord> {
 
+    ExamRecord startExam(StartExamVo startExamVo);
 } 
