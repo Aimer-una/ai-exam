@@ -12,6 +12,7 @@ import com.atguigu.exam.service.AnswerRecordService;
 import com.atguigu.exam.service.ExamRecordService;
 import com.atguigu.exam.service.KimiAiService;
 import com.atguigu.exam.service.PaperService;
+import com.atguigu.exam.vo.ExamRankingVO;
 import com.atguigu.exam.vo.StartExamVo;
 import com.atguigu.exam.vo.SubmitAnswerVo;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -46,6 +47,8 @@ public class ExamRecordServiceImpl extends ServiceImpl<ExamRecordMapper, ExamRec
     private AnswerRecordService answerRecordService;
     @Autowired
     private KimiAiService kimiAiService;
+    @Autowired
+    private ExamRecordMapper examRecordMapper;
 
     @Override
     public ExamRecord startExam(StartExamVo startExamVo) {
@@ -250,6 +253,18 @@ public class ExamRecordServiceImpl extends ServiceImpl<ExamRecordMapper, ExamRec
         //删除自身数据，同时删除答题记录
         removeById(id);
         answerRecordService.remove(new LambdaQueryWrapper<AnswerRecord>().eq(AnswerRecord::getExamRecordId,id));
+    }
+
+    /**
+     * 获取考试排行榜 - 优化版本
+     * 使用SQL关联查询，一次性获取所有需要的数据，避免N+1查询问题
+     * @param paperId 试卷ID，可选参数，不传则查询所有试卷
+     * @param limit 显示数量限制，可选参数，不传则返回所有记录
+     * @return 排行榜列表
+     */
+    @Override
+    public List<ExamRankingVO> customGetRanking(Integer paperId, Integer limit) {
+        return examRecordMapper.customQueryRanking(paperId,limit);
     }
 
     /**

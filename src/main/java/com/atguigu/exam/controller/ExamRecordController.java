@@ -10,6 +10,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,6 +22,7 @@ import java.util.List;
  * 考试记录控制器 - 处理考试记录管理相关的HTTP请求
  * 包括考试记录查询、分页展示、成绩排行榜等功能
  */
+@Slf4j
 @CrossOrigin(origins = "*")  // 允许跨域访问
 @RestController  // REST控制器，返回JSON数据
 @RequestMapping("/api/exam-records")  // 考试记录API路径前缀
@@ -86,7 +88,9 @@ public class ExamRecordController {
             @Parameter(description = "显示数量限制，可选，不传则返回所有记录") @RequestParam(required = false) Integer limit
     ) {
         // 使用优化的查询方法，避免N+1查询问题
-
-        return Result.success(null);
+        // 使用优化的查询方法，避免N+1查询问题
+        List<ExamRankingVO> examRankingVOS =  examRecordService.customGetRanking(paperId,limit);
+        log.info("查询：{}试卷下的{}条数据成功！数据为：{}",paperId,limit,examRankingVOS);
+        return Result.success(examRankingVOS);
     }
 } 
