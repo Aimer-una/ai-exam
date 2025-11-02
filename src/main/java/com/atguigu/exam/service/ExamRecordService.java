@@ -24,4 +24,6 @@ public interface ExamRecordService extends IService<ExamRecord> {
     public ExamRecord gradeExam(Integer examRecordId) throws InterruptedException;
 
     void getExamRecordsPage(Page<ExamRecord> myPage, Integer status, String startDate, String studentName, String studentNumber, String endDate);
+
+    void customRemoveById(Integer id);
 } 

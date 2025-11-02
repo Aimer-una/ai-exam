@@ -239,6 +239,19 @@ public class ExamRecordServiceImpl extends ServiceImpl<ExamRecordMapper, ExamRec
         }
     }
 
+    @Override
+    public void customRemoveById(Integer id) {
+        //重要的关联数据校验，有删除失败！
+        //判断自身状态，进行中不能删除
+        ExamRecord examRecord = getById(id);
+        if ("进行中".equals(examRecord.getStatus())){
+            throw new RuntimeException("正在考试中，无法直接删除！");
+        }
+        //删除自身数据，同时删除答题记录
+        removeById(id);
+        answerRecordService.remove(new LambdaQueryWrapper<AnswerRecord>().eq(AnswerRecord::getExamRecordId,id));
+    }
+
     /**
      * 标准化判断题答案，将T/F转换为TRUE/FALSE
      * @param answer 原始答案

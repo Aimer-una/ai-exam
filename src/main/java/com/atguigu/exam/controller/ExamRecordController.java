@@ -67,8 +67,8 @@ public class ExamRecordController {
     @Operation(summary = "删除考试记录", description = "根据ID删除指定的考试记录")  // API描述
     public Result<Void> deleteExamRecord(
             @Parameter(description = "考试记录ID") @PathVariable Integer id) {
-
-         return Result.error("删除失败");
+            examRecordService.customRemoveById(id);
+         return Result.success("删除成功");
     }
 
     /**
