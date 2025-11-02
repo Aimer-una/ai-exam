@@ -49,6 +49,7 @@ public class ExamController {
     public Result<Void> submitAnswers(
             @Parameter(description = "考试记录ID") @PathVariable Integer examRecordId, 
             @RequestBody List<SubmitAnswerVo> answers) {
+            examRecordService.submitAnswers(examRecordId,answers);
         return Result.success("答案提交成功");
     }
 
