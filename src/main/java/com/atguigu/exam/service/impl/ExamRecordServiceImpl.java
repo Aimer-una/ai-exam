@@ -16,11 +16,14 @@ import com.atguigu.exam.vo.StartExamVo;
 import com.atguigu.exam.vo.SubmitAnswerVo;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.CrossOrigin;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -32,6 +35,7 @@ import java.util.stream.Collectors;
  * 实现考试记录相关的业务逻辑
  */
 @Service
+@Slf4j
 public class ExamRecordServiceImpl extends ServiceImpl<ExamRecordMapper, ExamRecord> implements ExamRecordService {
 
     @Autowired
@@ -204,6 +208,35 @@ public class ExamRecordServiceImpl extends ServiceImpl<ExamRecordMapper, ExamRec
         examRecord.setStatus("已批阅");
         updateById(examRecord);
         return examRecord;
+    }
+
+    @Override
+    public void getExamRecordsPage(Page<ExamRecord> myPage, Integer status, String startDate, String studentName, String studentNumber, String endDate) {
+        LambdaQueryWrapper<ExamRecord> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+        lambdaQueryWrapper.eq(!ObjectUtils.isEmpty(studentName),ExamRecord::getStudentName,studentName);
+        if (!ObjectUtils.isEmpty(status)){
+            String strStatus = switch (status){
+                case 0 -> "进行中";
+                case 1 -> "已完成";
+                case 2 -> "已批阅";
+                default -> null;
+            };
+            lambdaQueryWrapper.eq(!ObjectUtils.isEmpty(strStatus),ExamRecord::getStatus,strStatus);
+        }
+        lambdaQueryWrapper.ge(!ObjectUtils.isEmpty(startDate),ExamRecord::getStartTime,startDate);
+        lambdaQueryWrapper.le(!ObjectUtils.isEmpty(endDate),ExamRecord::getEndTime,endDate);
+        page(myPage,lambdaQueryWrapper);
+        // 查看是否有查到数据
+        if (ObjectUtils.isEmpty(myPage.getRecords())){
+            log.info("考试记录为空没必要查询对应试卷信息");
+            return;
+        }
+        List<Integer> paperIds = myPage.getRecords().stream().map(ExamRecord::getExamId).collect(Collectors.toList());
+        List<Paper> paperList = paperService.listByIds(paperIds);
+        Map<Long, Paper> paperMap = paperList.stream().collect(Collectors.toMap(Paper::getId, s -> s));
+        for (ExamRecord record : myPage.getRecords()) {
+            record.setPaper(paperMap.get(record.getExamId().longValue()));
+        }
     }
 
     /**

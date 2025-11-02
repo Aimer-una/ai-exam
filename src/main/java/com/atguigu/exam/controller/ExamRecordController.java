@@ -2,6 +2,8 @@ package com.atguigu.exam.controller;
 
 import com.atguigu.exam.common.Result;
 import com.atguigu.exam.entity.ExamRecord;
+import com.atguigu.exam.entity.Paper;
+import com.atguigu.exam.service.ExamRecordService;
 import com.atguigu.exam.vo.ExamRankingVO;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -19,13 +21,15 @@ import java.util.List;
  * 考试记录控制器 - 处理考试记录管理相关的HTTP请求
  * 包括考试记录查询、分页展示、成绩排行榜等功能
  */
+@CrossOrigin(origins = "*")  // 允许跨域访问
 @RestController  // REST控制器，返回JSON数据
 @RequestMapping("/api/exam-records")  // 考试记录API路径前缀
 @Tag(name = "考试记录管理", description = "考试记录相关操作，包括记录查询、成绩管理、排行榜展示等功能")  // Swagger API分组
 public class ExamRecordController {
 
 
-
+    @Autowired
+    private ExamRecordService examRecordService;
     /**
      * 分页查询考试记录
      */
@@ -40,8 +44,9 @@ public class ExamRecordController {
             @Parameter(description = "开始日期，格式：yyyy-MM-dd") @RequestParam(required = false) String startDate,
             @Parameter(description = "结束日期，格式：yyyy-MM-dd") @RequestParam(required = false) String endDate
     ) {
-
-        return Result.success(null);
+        Page<ExamRecord> myPage = new Page<>(page,size);
+        examRecordService.getExamRecordsPage(myPage,status,startDate,studentName,studentNumber,endDate);
+        return Result.success(myPage);
     }
 
     /**
