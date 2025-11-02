@@ -18,7 +18,7 @@ public interface ExamRecordService extends IService<ExamRecord> {
 
     ExamRecord getExamRecordById(Integer id);
 
-    void submitAnswers(Integer examRecordId, List<SubmitAnswerVo> answers);
+    void submitAnswers(Integer examRecordId, List<SubmitAnswerVo> answers) throws InterruptedException;
 
-    public ExamRecord gradeExam(Integer examRecordId);
+    public ExamRecord gradeExam(Integer examRecordId) throws InterruptedException;
 } 

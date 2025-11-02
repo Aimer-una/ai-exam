@@ -1,5 +1,6 @@
 package com.atguigu.exam.service.impl;
 
+import com.atguigu.exam.common.GradingResult;
 import com.atguigu.exam.entity.AnswerRecord;
 import com.atguigu.exam.entity.ExamRecord;
 import com.atguigu.exam.entity.Paper;
@@ -9,6 +10,7 @@ import com.atguigu.exam.mapper.ExamRecordMapper;
 import com.atguigu.exam.mapper.PaperMapper;
 import com.atguigu.exam.service.AnswerRecordService;
 import com.atguigu.exam.service.ExamRecordService;
+import com.atguigu.exam.service.KimiAiService;
 import com.atguigu.exam.service.PaperService;
 import com.atguigu.exam.vo.StartExamVo;
 import com.atguigu.exam.vo.SubmitAnswerVo;
@@ -38,6 +40,8 @@ public class ExamRecordServiceImpl extends ServiceImpl<ExamRecordMapper, ExamRec
     private AnswerRecordMapper answerRecordMapper;
     @Autowired
     private AnswerRecordService answerRecordService;
+    @Autowired
+    private KimiAiService kimiAiService;
 
     @Override
     public ExamRecord startExam(StartExamVo startExamVo) {
@@ -93,7 +97,7 @@ public class ExamRecordServiceImpl extends ServiceImpl<ExamRecordMapper, ExamRec
     }
 
     @Override
-    public void submitAnswers(Integer examRecordId, List<SubmitAnswerVo> answers) {
+    public void submitAnswers(Integer examRecordId, List<SubmitAnswerVo> answers) throws InterruptedException {
         // 判断是否有传入答题信息
         if (ObjectUtils.isEmpty(answers)){
             throw new RuntimeException("你没有填写答题信息不能提交");
@@ -111,7 +115,7 @@ public class ExamRecordServiceImpl extends ServiceImpl<ExamRecordMapper, ExamRec
     }
 
     @Override
-    public ExamRecord gradeExam(Integer examRecordId) {
+    public ExamRecord gradeExam(Integer examRecordId) throws InterruptedException {
         //宏观：  获取考试记录相关的信息（考试记录对象 考试记录答题记录 考试对应试卷）
         //  进行循环判断（1.答题记录进行修改 2.总体提到总分数 总正确数量）  修改考试记录（状态 -》 已批阅  修改 -》 总分数）   进行ai评语生成（总正确的题目数量）
         //  修改考试记录表  返回考试记录对象
@@ -160,8 +164,22 @@ public class ExamRecordServiceImpl extends ServiceImpl<ExamRecordMapper, ExamRec
                 }else {
                     //3.简答题进行ai判断
                     //简答题
-                    answerRecord.setScore(question.getPaperScore().intValue());
-                    answerRecord.setIsCorrect(1);
+                    GradingResult result =
+                            kimiAiService.gradingTextQuestion(question,userAnswer,question.getPaperScore().intValue());
+                    //分
+                    answerRecord.setScore(result.getScore());
+                    //ai评价 正确  feedback  非正确 reason
+                    //是否正确 （满分 1 0分 0 其余就是2）
+                    if (result.getScore() == 0){
+                        answerRecord.setIsCorrect(0);
+                        answerRecord.setAiCorrection(result.getReason());
+                    }else if (result.getScore() == question.getPaperScore().intValue()){
+                        answerRecord.setIsCorrect(1);
+                        answerRecord.setAiCorrection(result.getFeedback());
+                    }else{
+                        answerRecord.setIsCorrect(2);
+                        answerRecord.setAiCorrection(result.getReason());
+                    }
                 }
             }catch (Exception e){
                 answerRecord.setScore(0);
@@ -179,7 +197,8 @@ public class ExamRecordServiceImpl extends ServiceImpl<ExamRecordMapper, ExamRec
         // 修改学生答题记录
         answerRecordService.updateBatchById(answerRecords);
         // 调用kimi进行ai评价
-        String summary = "暂时不用ai评价";
+        String summary = kimiAiService.
+                buildSummary(totalScore, paper.getTotalScore().intValue(), paper.getQuestionCount(), correctNumber);
         examRecord.setScore(totalScore);
         examRecord.setAnswers(summary);
         examRecord.setStatus("已批阅");
