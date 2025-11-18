@@ -55,5 +55,5 @@ kimi:
     model: moonshot-v1-32k
     url: https://api.moonshot.cn/v1/chat/completions
     temperature: 0.3
-    api-key: sk-bnnADAKWFxz56I0136kRW6LFnnWwUdRVi8adlA8btYq6jooq
+    api-key: 写你自己的申请的密钥
     max-tokens: 2000 #生成的最大token数
