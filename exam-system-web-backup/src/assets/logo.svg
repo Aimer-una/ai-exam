@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 智能学习平台 AI Logo - 简洁版本 -->
+  
+  <!-- 背景圆形 -->
+  <circle cx="18" cy="18" r="16" fill="url(#bgGradient)" stroke="url(#borderGradient)" stroke-width="2"/>
+  
+  <!-- AI 字母设计 -->
+  <g transform="translate(6, 8)">
+    <!-- 字母 A -->
+    <path d="M4 20 L8 8 L12 20 M6 16 L10 16" 
+          stroke="white" 
+          stroke-width="2.5" 
+          stroke-linecap="round" 
+          stroke-linejoin="round" 
+          fill="none"/>
+    
+    <!-- 字母 I -->
+    <path d="M16 8 L20 8 M18 8 L18 20 M16 20 L20 20" 
+          stroke="white" 
+          stroke-width="2.5" 
+          stroke-linecap="round" 
+          stroke-linejoin="round" 
+          fill="none"/>
+    
+    <!-- 装饰小点 - 代表智能 -->
+    <circle cx="22" cy="10" r="1.5" fill="white" opacity="0.8"/>
+    <circle cx="22" cy="14" r="1" fill="white" opacity="0.6"/>
+    <circle cx="22" cy="17" r="0.8" fill="white" opacity="0.4"/>
+  </g>
+  
+  <!-- 渐变定义 -->
+  <defs>
+    <!-- 背景渐变 - 现代蓝色 -->
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4285f4"/>
+      <stop offset="100%" stop-color="#667eea"/>
+    </linearGradient>
+    
+    <!-- 边框渐变 -->
+    <linearGradient id="borderGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1a73e8"/>
+      <stop offset="100%" stop-color="#5a67d8"/>
+    </linearGradient>
+  </defs>
+</svg> 

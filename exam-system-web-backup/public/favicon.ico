@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 智能学习平台 AI Favicon - 简洁版本 -->
+  
+  <!-- 背景圆形 -->
+  <circle cx="16" cy="16" r="14" fill="url(#bgGradient)" stroke="url(#borderGradient)" stroke-width="2"/>
+  
+  <!-- AI 字母设计 - 稍小适应favicon -->
+  <g transform="translate(5, 7)">
+    <!-- 字母 A -->
+    <path d="M3 18 L6.5 6 L10 18 M4.5 14 L8.5 14" 
+          stroke="white" 
+          stroke-width="2.2" 
+          stroke-linecap="round" 
+          stroke-linejoin="round" 
+          fill="none"/>
+    
+    <!-- 字母 I -->
+    <path d="M13 6 L17 6 M15 6 L15 18 M13 18 L17 18" 
+          stroke="white" 
+          stroke-width="2.2" 
+          stroke-linecap="round" 
+          stroke-linejoin="round" 
+          fill="none"/>
+    
+    <!-- 装饰小点 -->
+    <circle cx="19" cy="8" r="1.2" fill="white" opacity="0.8"/>
+    <circle cx="19" cy="12" r="0.8" fill="white" opacity="0.6"/>
+    <circle cx="19" cy="15" r="0.6" fill="white" opacity="0.4"/>
+  </g>
+  
+  <!-- 渐变定义 -->
+  <defs>
+    <!-- 背景渐变 -->
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4285f4"/>
+      <stop offset="100%" stop-color="#667eea"/>
+    </linearGradient>
+    
+    <!-- 边框渐变 -->
+    <linearGradient id="borderGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1a73e8"/>
+      <stop offset="100%" stop-color="#5a67d8"/>
+    </linearGradient>
+  </defs>
+</svg> 
